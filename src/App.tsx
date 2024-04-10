@@ -38,6 +38,12 @@ function App() {
         }
 
         getData()
+
+        return ()=> {
+            if(data.length === 10){
+                setData(()=> [])
+            }
+        }
     },[count])
 
     function clear(){
