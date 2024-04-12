@@ -1,8 +1,9 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import {v4 as uuid} from "uuid"
 
 interface Character{
-    id: number
+    id: string
     name: string;
     status: string;
     species: string;
@@ -10,68 +11,70 @@ interface Character{
 }
 
 function App() {
-    /* const [data, setData] = useState<Character>({
-        image: "",
-        name: "",
-        species: "",
-        status: ""
-    }) */
-
+    const [isVisible, setIsVisible] = useState(true)
     const [data, setData] = useState<Character[]>([])
-
     const [count, setCount] = useState<number>(0)
 
+    
     useEffect(()=>{
         async function getData (){
-            const dataApi = await axios("https://rickandmortyapi.com/api/character")
+            try {
+                const dataApi = await axios.get("https://rickandmortyapi.com/api/character")
 
-            const {id,name, species, status, image} = dataApi.data.results[0]
-            
-            const newCharacter: Character = {
-                id,
-                name,
-                species,
-                status,
-                image
+                const {name, species, status, image} = dataApi.data.results[0]
+                
+                const newCharacter: Character = {
+                    id: uuid(),
+                    name,
+                    species,
+                    status,
+                    image
+                }  
+
+                setData((currentValue)=> [newCharacter, ...currentValue])
+
+            } catch (error) {
+                console.log(error)
             }
-            setData((data)=> [newCharacter, ...data])
         }
-
         getData()
 
-        return ()=> {
-            if(data.length === 10){
-                setData(()=> [])
-            }
-        }
+
     },[count])
 
-    function clear(){
-        setData(()=> [])
-    }
+    useEffect(()=> {
+        return () => {
+            console.log("Abortando a solicitação de dados...");
+                setData([])
+            console.log("Solicitação de dados abortada com sucesso.");
+        };
+    },[isVisible])
+
+    console.log("rerender")
     return (
         <main className="container-fluid justify-content-center text-center p-0">
+
             <div className="container-fluid text-bg-success">
-                <h1 >InfinityRick</h1>
+                <h1>InfinityRick</h1>
             </div>
             
             <div className="container d-flex justify-content-center flex-wrap" >
-                {data.map((item: Character, index) =>(
-                    <div className="border rounded border-success m-2 p-2 text-bg-success" key={item.id + index }>
+                {isVisible && data?.map((item) =>(
+                    <div className="border rounded border-success m-2 p-2 text-bg-success" key={item.id}>
                         <img className="w-75"  src={item.image}/>
                         <h1><u>{item.name}</u></h1>
                         <p>{item.species}</p>
                         <p>{item.status}</p>
-                        <button className="btn btn-light mb-2" onClick={()=> setCount((prevCount)=> prevCount + 1)}>Clicar</button>
                         <br/>
-                        <button className="btn btn-danger" onClick={clear}>Limpar Rick infinito</button>
+                        <button className="btn btn-light mb-2" onClick={()=> setCount((counter)=> counter  + 1)}>Clicar</button>
+                        <button className="btn btn-danger" onClick={()=> setIsVisible(false)}>Limpar Rick infinito</button>
                     </div>
 
-
                 ))}
-            </div>
+            </div> 
         </main>
     );
 }
 
-export default App;
+
+export default App
